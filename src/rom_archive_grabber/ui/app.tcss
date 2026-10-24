@@ -1,0 +1,227 @@
+#tabs {
+    height: 1fr;
+}
+
+#browse-tab {
+    height: 1fr;
+}
+
+#browse-tab > Horizontal {
+    height: 1fr;
+}
+
+.heading {
+    color: $accent;
+    text-style: bold;
+}
+
+#sources {
+    width: 26;
+    padding: 0 1;
+    border-right: solid $panel-lighten-2;
+}
+
+#source-list, #platform-list {
+    height: auto;
+    max-height: 50%;
+    margin-bottom: 1;
+}
+
+#add-source {
+    margin-bottom: 1;
+    color: $text-muted;
+}
+
+.source-actions {
+    height: auto;
+}
+
+.source-actions Button {
+    width: 1fr;
+    min-width: 0;
+    margin-right: 1;
+}
+
+ChoiceRow, SourceRow {
+    padding: 0 1;
+}
+
+SourceRow {
+    height: 1;
+}
+
+.source-toggle {
+    width: 2;
+}
+
+.source-name {
+    width: 1fr;
+}
+
+ChoiceRow:hover, SourceRow:hover {
+    background: $boost;
+}
+
+ChoiceRow:focus, SourceRow:focus {
+    background: $accent 30%;
+}
+
+SourceRow.-hidden {
+    color: $text-muted;
+}
+
+SourceRow.-current {
+    text-style: bold;
+}
+
+ChoiceRow.-selected {
+    background: $primary 40%;
+}
+
+#centre {
+    width: 1fr;
+}
+
+#search {
+    margin: 0 1;
+}
+
+#results {
+    height: 1fr;
+}
+
+#details {
+    width: 30;
+    padding: 0 1;
+    border-left: solid $panel-lighten-2;
+}
+
+#details Static {
+    color: $text-muted;
+}
+
+#details #detail-title {
+    color: $accent;
+}
+
+#details #detail-status.-done {
+    color: $success;
+    margin-top: 1;
+}
+
+#detail-actions {
+    height: auto;
+    margin-top: 1;
+}
+
+#detail-actions Button {
+    margin-right: 1;
+}
+
+#downloads-tab {
+    height: 1fr;
+    padding: 0 1;
+}
+
+#downloads-header {
+    height: 1;
+}
+
+#downloads-header .heading {
+    width: 1fr;
+}
+
+#downloads-header Button {
+    margin-left: 1;
+}
+
+#active-jobs {
+    height: 1fr;
+    margin-bottom: 1;
+}
+
+#done-jobs {
+    height: 1fr;
+}
+
+#downloads-footer {
+    color: $text-muted;
+}
+
+JobRow, JobRow > Horizontal {
+    height: 1;
+}
+
+JobRow .job-title {
+    width: 1fr;
+}
+
+JobRow .job-note {
+    width: auto;
+    margin-right: 1;
+    color: $warning;
+}
+
+JobRow .job-status {
+    width: 16;
+}
+
+JobRow .job-progress {
+    width: 22;
+}
+
+JobRow .job-progress Bar {
+    width: 15;
+}
+
+JobRow .job-speed {
+    width: 12;
+}
+
+JobRow .job-detail {
+    width: 34;
+    color: $text-muted;
+}
+
+JobRow .job-actions {
+    width: 28;
+}
+
+JobRow .job-actions Button {
+    width: auto;
+    min-width: 0;
+    margin-left: 1;
+}
+
+MessageDialog, ConfirmDialog, AddSourceDialog {
+    align: center middle;
+}
+
+#dialog {
+    width: 60;
+    height: auto;
+    padding: 1 2;
+    border: thick $error;
+    background: $surface;
+}
+
+#dialog-message {
+    margin-bottom: 1;
+}
+
+#dialog.-form {
+    border: thick $accent;
+}
+
+#dialog.-form Input, #dialog.-form Select {
+    margin-bottom: 1;
+}
+
+#dialog-buttons {
+    height: auto;
+    align-horizontal: right;
+}
+
+#dialog-buttons Button {
+    margin-left: 1;
+}

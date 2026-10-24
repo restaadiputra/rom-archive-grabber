@@ -1,0 +1,43 @@
+# Archive.org items and collections listed by the built-in "Archive.org (curated)" source.
+#
+# An entry belongs here only when its archive.org metadata clearly shows the games are
+# homebrew, public-domain or freeware released by their authors: the author's own upload,
+# or an explicit licence such as MIT, GPL, CC or public domain. Anything containing
+# commercial titles, ROM sets or uploads without a clear rights statement is left out.
+#
+# Each entry: identifier, default platform, a one-line note saying who uploaded it and why
+# it qualifies, an optional `exclude` list of file names that are not playable (source or
+# asset archives), and optional per-item platform overrides (item identifier = platform key).
+
+[[collection]]
+identifier = "TobuTobuGirlGame"
+platform = "gb"
+note = "Tobu Tobu Girl by Tangram Games, uploaded by Alex Gleason; open-source homebrew, code MIT and assets CC-BY-SA-4.0 per the description."
+exclude = ["sourcecode.zip"]
+
+[[collection]]
+identifier = "ucity-1.2"
+platform = "gbc"
+note = "uCity 1.2 by Antonio Nino Diaz (AntonioND), uploaded by gnudist; open-source city builder for Game Boy Color, GPLv3+ per the description."
+exclude = ["ucity-1.2.zip"]
+
+[[collection]]
+identifier = "damuel_202407"
+platform = "gb"
+note = "Damuel by Adam Jeremy Capps, uploaded by the author (warlockjinn); original Game Boy game he made and offers free to download and share."
+
+[[collection]]
+identifier = "damuel-2"
+platform = "gb"
+note = "Damuel 2 by Adam Jeremy Capps, uploaded by the author (warlockjinn); stated public domain, game and assets all his own work."
+exclude = ["Damuel2.zip"]
+
+[[collection]]
+identifier = "damuel3"
+platform = "gb"
+note = "Damuel 3 v1.0 by Adam Jeremy Capps, uploaded by the author (warlockjinn); stated a free and public-domain Game Boy game he made."
+
+[[collection]]
+identifier = "damuel3improved"
+platform = "gb"
+note = "Damuel 3 v2.0 by Adam Jeremy Capps, uploaded by the author (warlockjinn); free to share and play, all sprites, tiles and music his own."

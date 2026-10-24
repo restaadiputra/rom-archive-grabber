@@ -1,0 +1,10 @@
+{
+  "metadata": {
+    "identifier": "example-homebrew-jam",
+    "mediatype": "collection",
+    "title": "Example Homebrew Jam"
+  },
+  "files": [
+    {"name": "example-homebrew-jam_meta.xml", "source": "original", "size": "640"}
+  ]
+}

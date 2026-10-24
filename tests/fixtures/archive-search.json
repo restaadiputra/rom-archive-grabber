@@ -1,0 +1,21 @@
+[
+  {
+    "responseHeader": {"status": 0},
+    "response": {
+      "numFound": 3,
+      "start": 0,
+      "docs": [
+        {"identifier": "example-homebrew-jam-a", "title": "Entry A"},
+        {"identifier": "example-homebrew-jam-b", "title": "Entry B"}
+      ]
+    }
+  },
+  {
+    "responseHeader": {"status": 0},
+    "response": {
+      "numFound": 3,
+      "start": 2,
+      "docs": [{"identifier": "example-homebrew-jam-c", "title": "Entry C"}]
+    }
+  }
+]

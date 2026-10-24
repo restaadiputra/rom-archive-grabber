@@ -1,0 +1,15 @@
+{
+  "metadata": {
+    "identifier": "example-homebrew-jam-entry",
+    "mediatype": "software",
+    "title": "Jam Entry Deluxe",
+    "collection": ["example-homebrew-jam"]
+  },
+  "files": [
+    {"name": "My Game.gb", "source": "original", "size": "32768"},
+    {"name": "My Game (converted).gb", "source": "derivative", "size": "32768"},
+    {"name": "example-homebrew-jam-entry_meta.xml", "source": "original", "size": "812"},
+    {"name": "example-homebrew-jam-entry_archive.torrent", "source": "metadata"},
+    {"name": "screenshot.png", "source": "original", "size": "4096"}
+  ]
+}

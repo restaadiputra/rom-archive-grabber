@@ -1,0 +1,59 @@
+[[platform]]
+key = "gb"
+label = "Game Boy"
+folder = "game-boy"
+
+[[platform]]
+key = "gbc"
+label = "Game Boy Color"
+folder = "game-boy-color"
+
+[[platform]]
+key = "gba"
+label = "Game Boy Advance"
+folder = "game-boy-advance"
+
+[[platform]]
+key = "nes"
+label = "NES"
+folder = "nes"
+
+[[platform]]
+key = "snes"
+label = "SNES"
+folder = "snes"
+
+[[platform]]
+key = "n64"
+label = "Nintendo 64"
+folder = "nintendo-64"
+
+[[platform]]
+key = "nds"
+label = "Nintendo DS"
+folder = "nintendo-ds"
+
+[[platform]]
+key = "genesis"
+label = "Genesis / Mega Drive"
+folder = "genesis"
+
+[[platform]]
+key = "sms"
+label = "Master System"
+folder = "master-system"
+
+[[platform]]
+key = "ps1"
+label = "PlayStation"
+folder = "playstation"
+
+[[platform]]
+key = "pc"
+label = "PC"
+folder = "pc"
+
+[[platform]]
+key = "other"
+label = "Other"
+folder = "other"
