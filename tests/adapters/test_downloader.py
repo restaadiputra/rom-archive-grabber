@@ -35,6 +35,7 @@ class FakeHttp:
     def __init__(self, stream: FakeStream) -> None:
         self._stream = stream
         self.starts: list[int] = []
+        self.urls: list[str] = []
 
     async def get_text(self, url: str) -> tuple[str, str]:
         raise NotImplementedError
@@ -43,6 +44,7 @@ class FakeHttp:
         raise NotImplementedError
 
     def stream(self, url: str, start: int = 0) -> AbstractAsyncContextManager[HttpStream]:
+        self.urls.append(url)
         self.starts.append(start)
         return self._open()
 
@@ -78,6 +80,18 @@ async def test_downloads_to_platform_folder(tmp_path: Path) -> None:
     assert not (folder / "game.gb.part").exists()
     assert (job.bytes_done, job.bytes_total) == (6, 6)
     assert seen[-1] == (6, 6)
+
+
+async def test_resolver_supplies_current_url_and_file_name(tmp_path: Path) -> None:
+    class Resolver:
+        async def resolve(self, file: GameFile) -> tuple[str, str | None]:
+            return "https://cdn.example/current.gb", "server-name.gb"
+
+    job = make_job()
+    http = FakeHttp(ok([b"game"]))
+    await FileDownloader(http, Resolver()).download(job, tmp_path, lambda _done, _total: None)
+    assert http.urls == ["https://cdn.example/current.gb"]
+    assert (tmp_path / "server-name.gb").read_bytes() == b"game"
 
 
 def test_unique_path_adds_suffix(tmp_path: Path) -> None:

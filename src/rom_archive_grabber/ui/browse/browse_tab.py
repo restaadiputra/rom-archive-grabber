@@ -6,7 +6,7 @@ from textual.app import ComposeResult
 from textual.binding import Binding, BindingType
 from textual.containers import Horizontal, Vertical
 from textual.screen import ModalScreen
-from textual.widgets import Button, DataTable, Input
+from textual.widgets import Button, DataTable, Input, Static
 from textual.worker import Worker, WorkerState
 
 from rom_archive_grabber.domain.models import GameFile, SourceConfig
@@ -25,6 +25,8 @@ from rom_archive_grabber.ui.services import AppServices
 
 # Progress can arrive many times a second; the view redraws at most this often.
 REDRAW_SECONDS = 0.25
+PAGE_SIZE = 250
+DEBOUNCE_MIN_FILES = 1_000
 T = TypeVar("T")
 
 
@@ -43,8 +45,10 @@ class BrowseTab(Vertical):
         self._views = BrowseViews(services, self._state)
         self._files = LoadedFiles(services)
         self._dirty = False
-        # Listing runs for all sources and for single sources can overlap.
-        self._refreshes = 0
+        self._page = 0
+        self._visible_files: list[GameFile] = []
+        self._visible_signature: tuple[object, ...] | None = None
+        self._filter_signature: tuple[object, ...] | None = None
         self._source_actions = SourceActions(services, self)
         # The refresh worker and event handlers can both redraw; one at a time.
         self._view_lock = asyncio.Lock()
@@ -55,11 +59,15 @@ class BrowseTab(Vertical):
             with Vertical(id="centre"):
                 yield Input(placeholder="search", id="search")
                 yield ResultsTable()
+                with Horizontal(id="results-pager"):
+                    yield Button("Previous", id="results-previous")
+                    yield Static("0 results", id="results-count")
+                    yield Button("Next", id="results-next")
             yield DetailsPanel(id="details")
 
     async def on_mount(self) -> None:
         self.set_interval(REDRAW_SECONDS, self._redraw_if_dirty)
-        self._files.reload()
+        await asyncio.to_thread(self._files.reload)
         await self.refresh_view()
 
     def mark_dirty(self) -> None:
@@ -108,16 +116,42 @@ class BrowseTab(Vertical):
         self._dirty = False
         sources = self._services.all_sources()
         context = self._views.row_context(sources)
-        visible = self._state.visible(self._files.files, [source.id for source in sources])
+        filters = (
+            self._state.query,
+            self._state.platform,
+            frozenset(self._state.hidden_sources),
+            self._state.sort_column,
+            self._state.descending,
+            tuple(source.id for source in sources),
+        )
+        if filters != self._filter_signature:
+            self._page = 0
+            self._filter_signature = filters
+        signature = (self._files.revision, filters)
+        if signature != self._visible_signature:
+            self._visible_files = self._state.visible(
+                self._files.files, [source.id for source in sources]
+            )
+            self._visible_signature = signature
+        visible = self._visible_files
+        pages = max(1, (len(visible) + PAGE_SIZE - 1) // PAGE_SIZE)
+        self._page = min(self._page, pages - 1)
+        first = self._page * PAGE_SIZE
         sort = SortView(self._state.sort_column, self._state.descending)
-        self.query_one(ResultsTable).show([context.row(file) for file in visible], sort)
+        self.query_one(ResultsTable).show(
+            [context.row(file) for file in visible[first : first + PAGE_SIZE]], sort
+        )
+        self.query_one("#results-previous", Button).disabled = self._page == 0
+        self.query_one("#results-next", Button).disabled = self._page >= pages - 1
+        count = f"{first + 1}-{min(first + PAGE_SIZE, len(visible))} of {len(visible)}"
+        self.query_one("#results-count", Static).update(count if visible else "0 results")
         panel = self.query_one(SourcesPanel)
         await panel.show(self._views.sources(), self._views.platforms(self._files.files))
         self._show_details(context)
 
     def download_marked(self) -> None:
         """Queue the marked files, or the file under the cursor when none are marked."""
-        marked = [self._files.get(key) for key in self._visible_keys() if key in self._state.marked]
+        marked = [file for file in self._visible_files if file.key in self._state.marked]
         files = [file for file in marked if file is not None]
         if not files:
             cursor = self._cursor_file()
@@ -138,7 +172,32 @@ class BrowseTab(Vertical):
 
     async def on_input_changed(self, event: Input.Changed) -> None:
         self._state.query = event.value
+        self._files.set_search_results([])
+        self.run_worker(
+            self._search(event.value), group="live-search", exclusive=True, exit_on_error=False
+        )
+        if len(self._files.files) < DEBOUNCE_MIN_FILES:
+            await self.refresh_view()
+        else:
+            self.run_worker(
+                self._refresh_after_typing(),
+                group="local-filter",
+                exclusive=True,
+                exit_on_error=False,
+            )
+
+    async def _refresh_after_typing(self) -> None:
+        await asyncio.sleep(0.1)
         await self.refresh_view()
+
+    async def _search(self, query: str) -> None:
+        if not query.strip():
+            return
+        await asyncio.sleep(0.35)
+        files = await self._services.catalog.search(self._services.all_sources(), query)
+        if query == self._state.query:
+            self._files.set_search_results(files)
+            self.mark_dirty()
 
     async def on_results_table_sort_requested(self, event: ResultsTable.SortRequested) -> None:
         self._state.sort_by(event.column)
@@ -157,6 +216,10 @@ class BrowseTab(Vertical):
         self._show_details(self._views.row_context(self._services.all_sources()))
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id in ("results-previous", "results-next"):
+            self._page += -1 if event.button.id == "results-previous" else 1
+            await self.refresh_view()
+            return
         cursor = self._cursor_file()
         if cursor is None:
             return
@@ -169,18 +232,21 @@ class BrowseTab(Vertical):
             )
 
     async def _refresh(self, sources: list[SourceConfig], only_stale: bool) -> None:
-        self._refreshes += 1
         catalog = self._services.catalog
-        try:
-            for source in sources:
+        limit = asyncio.Semaphore(2)
+
+        async def refresh_one(source: SourceConfig) -> None:
+            async with limit:
                 if only_stale and not catalog.is_stale(source.id):
-                    continue
-                await catalog.refresh(source, self._show_partial)
-                # The finished listing replaces the partial one straight away.
-                self._files.reload()
+                    return
                 self.mark_dirty()
+                await catalog.refresh(source, self._show_partial)
+                self._files.replace_source(source.id, catalog.files([source]))
+                self.mark_dirty()
+
+        try:
+            await asyncio.gather(*(refresh_one(source) for source in sources))
         finally:
-            self._refreshes -= 1
             self._files.reload()
             await self.refresh_view()
 
@@ -189,8 +255,7 @@ class BrowseTab(Vertical):
         self.mark_dirty()
 
     async def _redraw_if_dirty(self) -> None:
-        # Source markers change while listing runs, so redraw throughout a refresh.
-        if self._dirty or self._refreshes:
+        if self._dirty:
             await self.refresh_view()
 
     def _show_details(self, context: RowContext) -> None:
@@ -201,6 +266,3 @@ class BrowseTab(Vertical):
     def _cursor_file(self) -> GameFile | None:
         key = self.query_one(ResultsTable).cursor_key()
         return None if key is None else self._files.get(key)
-
-    def _visible_keys(self) -> list[str]:
-        return [str(key.value) for key in self.query_one(ResultsTable).rows]

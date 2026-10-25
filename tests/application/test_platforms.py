@@ -8,4 +8,4 @@ def test_load_shipped_platforms_has_other_and_unknown_falls_back() -> None:
     catalog = load_platforms(text)
     assert catalog.get("gba").folder == "game-boy-advance"
     assert catalog.get("nope").key == "other"
-    assert len(catalog.all()) == 12
+    assert {"switch", "ps3", "ps5", "psv", "arcade"} <= {platform.key for platform in catalog.all()}

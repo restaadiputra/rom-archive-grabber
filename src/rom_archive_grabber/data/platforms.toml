@@ -54,6 +54,71 @@ label = "PC"
 folder = "pc"
 
 [[platform]]
+key = "switch"
+label = "Nintendo Switch"
+folder = "switch"
+
+[[platform]]
+key = "3ds"
+label = "Nintendo 3DS"
+folder = "nintendo-3ds"
+
+[[platform]]
+key = "gc"
+label = "GameCube"
+folder = "gamecube"
+
+[[platform]]
+key = "wii"
+label = "Wii"
+folder = "wii"
+
+[[platform]]
+key = "ps2"
+label = "PlayStation 2"
+folder = "playstation-2"
+
+[[platform]]
+key = "ps3"
+label = "PlayStation 3"
+folder = "playstation-3"
+
+[[platform]]
+key = "ps4"
+label = "PlayStation 4"
+folder = "playstation-4"
+
+[[platform]]
+key = "ps5"
+label = "PlayStation 5"
+folder = "playstation-5"
+
+[[platform]]
+key = "psp"
+label = "PlayStation Portable"
+folder = "psp"
+
+[[platform]]
+key = "psv"
+label = "PlayStation Vita"
+folder = "ps-vita"
+
+[[platform]]
+key = "dreamcast"
+label = "Dreamcast"
+folder = "dreamcast"
+
+[[platform]]
+key = "saturn"
+label = "Saturn"
+folder = "saturn"
+
+[[platform]]
+key = "arcade"
+label = "Arcade"
+folder = "arcade"
+
+[[platform]]
 key = "other"
 label = "Other"
 folder = "other"

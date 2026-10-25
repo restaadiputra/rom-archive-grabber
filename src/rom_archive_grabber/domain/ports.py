@@ -103,3 +103,15 @@ class Downloader(Protocol):
     def delete_file(self, job: DownloadJob) -> None:
         """Delete the job's finished file; a missing file is fine."""
         ...
+
+
+class FileResolver(Protocol):
+    async def resolve(self, file: GameFile) -> tuple[str, str | None]:
+        """Return a current download URL and an optional server-provided name."""
+        ...
+
+
+class MatchingFileResolver(FileResolver, Protocol):
+    def handles(self, file: GameFile) -> bool:
+        """Whether this resolver owns the file's download link."""
+        ...

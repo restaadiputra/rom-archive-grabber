@@ -48,6 +48,14 @@ def _capped_width(key: str, index: int, rows: list[RowView]) -> int | None:
     return cap if cap is not None and longest > cap else None
 
 
+def _unique_rows(rows: list[RowView]) -> list[RowView]:
+    """Keep the first row for each key before passing rows to Textual."""
+    by_key: dict[str, RowView] = {}
+    for row in rows:
+        by_key.setdefault(row.key, row)
+    return list(by_key.values())
+
+
 class ResultsTable(DataTable[str]):
     """The file list. Rows are keyed by `GameFile.key`."""
 
@@ -62,9 +70,11 @@ class ResultsTable(DataTable[str]):
         super().__init__(id="results", cursor_type="row", zebra_stripes=True)
         self._keys: list[str] = []
         self._headers: list[str] = []
+        self._row_cells: dict[str, tuple[str, str, str, str, str, str]] = {}
 
     def show(self, rows: list[RowView], sort: SortView) -> None:
         """Show `rows`, updating cells in place when only their text changed."""
+        rows = _unique_rows(rows)
         headers = _headers(sort)
         keys = [row.key for row in rows]
         if keys == self._keys and headers == self._headers:
@@ -72,6 +82,7 @@ class ResultsTable(DataTable[str]):
             return
         self._rebuild(rows, headers)
         self._keys, self._headers = keys, headers
+        self._row_cells = {row.key: row.cells for row in rows}
 
     def cursor_key(self) -> str | None:
         if self.row_count == 0:
@@ -87,9 +98,13 @@ class ResultsTable(DataTable[str]):
 
     def _update_cells(self, rows: list[RowView]) -> None:
         for row in rows:
-            for (column, _), text in zip(COLUMNS, row.cells, strict=True):
-                if self.get_cell(row.key, column) != text:
+            previous = self._row_cells.get(row.key)
+            if previous == row.cells:
+                continue
+            for index, ((column, _), text) in enumerate(zip(COLUMNS, row.cells, strict=True)):
+                if previous is None or previous[index] != text:
                     self.update_cell(row.key, column, text)
+            self._row_cells[row.key] = row.cells
 
     def _rebuild(self, rows: list[RowView], headers: list[str]) -> None:
         # Keep the cursor on the same file and the view where the user left it.
@@ -101,5 +116,7 @@ class ResultsTable(DataTable[str]):
             self.add_row(*row.cells, key=row.key)
         if cursor is not None and cursor in self.rows:
             self.move_cursor(row=self.get_row_index(cursor), scroll=False)
+        else:
+            scroll_y = 0
         # The new rows are measured on the next refresh; scrolling earlier would clamp to 0.
         self.call_after_refresh(self.scroll_to, y=scroll_y, animate=False)

@@ -17,7 +17,7 @@ DetectKind = Callable[[str], Awaitable[str | None]]
 
 UNDETECTED = (
     "Couldn't recognise this link. Supported: Archive.org items or collections, "
-    "folder pages, and plain link lists."
+    "folder pages, plain link lists, and installed plugins."
 )
 _MISSING = "Enter a link or file path and a name."
 _CHECKING = "Checking link…"

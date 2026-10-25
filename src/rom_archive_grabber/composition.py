@@ -61,11 +61,11 @@ def _build_registry(http: HttpClient) -> SourceRegistry:
     registry = SourceRegistry()
     archive = ArchiveOrgAdapter(http)
     registry.register(archive)
-    registry.register(LinkListAdapter(http))
-    registry.register(FolderPageAdapter(http))
     collections = load_curated(_data_text("curated-collections.toml"))
     registry.register(CuratedArchiveAdapter(archive, collections))
     registry.add_builtin_source(CURATED_SOURCE)
+    registry.register(LinkListAdapter(http))
+    registry.register(FolderPageAdapter(http))
     return registry
 
 
@@ -80,7 +80,7 @@ def build_services(
     warnings = load_plugins(plugin_folders, registry, http)
     platforms = load_platforms(_data_text("platforms.toml"))
     jobs = JsonJobStore(paths.jobs_file)
-    deps = DownloadDeps(FileDownloader(http), jobs, platforms, SystemClock())
+    deps = DownloadDeps(FileDownloader(http, registry), jobs, platforms, SystemClock())
     config = DownloadConfig(settings.download_dir, settings.max_parallel)
     return AppServices(
         settings=settings,

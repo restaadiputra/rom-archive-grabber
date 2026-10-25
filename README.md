@@ -16,13 +16,16 @@ up again after you close the app.
 
 ## Features
 
-- **One built-in source:** "Archive.org (curated)", a small, hand-checked list of
-  free homebrew games on Archive.org. Every other source is one you add.
+- **Built-in source:** a curated Archive.org list of freely distributed games.
+  You can switch it off in the Sources panel.
+- **Search:** filter cached catalogs as you type. Optional plugins can add
+  sources that return live search results.
 - **Add a source by pasting a link:** Archive.org items and collections, plain
   folder pages ("Index of …"), and text files with one link per line. The app works
   out which kind it is.
 - **One table for everything:** search across all sources, filter by source or
-  platform, and sort by clicking a column header.
+  platform, and sort by clicking a column header. Large result sets are shown
+  250 at a time; use Previous and Next below the table to move between pages.
 - **Download manager:** a queue with pause, resume, start now, cancel, retry and a
   history of finished files. Interrupted downloads resume where they stopped.
 - **Plugins:** add your own source types as small Python files that stay on your
@@ -53,13 +56,15 @@ python -m rom_archive_grabber
 
 Click **+ Add source** in the Sources panel, or press `ctrl+p` and choose
 **Add source**. Paste a link or a local file path, give it a name and pick a
-platform. The app checks the link and recognises three kinds:
+platform. The app checks the link and recognises these kinds:
 
 - **Archive.org item or collection**, for example `https://archive.org/details/<identifier>`.
 - **Folder page**: a web page that lists files as links.
 - **Link list**: a text file, online or on your disk, with one entry per line,
   either `Title | URL` or just a URL. Blank lines and lines starting with `#` are
   ignored.
+- **Installed plugins**, if you have added any locally. Plugins may recognize
+  other kinds of links and provide their own listings or live search.
 
 ```
 # my-list.txt
@@ -135,10 +140,7 @@ and `composition.py`, which wires them together.
 
 ## About this project
 
-This project was vibe coded, and took its inspiration from
-[sostenesapollo/rom-cli](https://github.com/sostenesapollo/rom-cli). It is a
-fresh implementation with a different goal: a safe-to-share tool that ships no
-third-party sites and lets each user choose their own sources.
+This project was vibe coded.
 
 ## Your responsibility
 

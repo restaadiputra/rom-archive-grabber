@@ -1,5 +1,5 @@
-from rom_archive_grabber.domain.models import SourceConfig
-from rom_archive_grabber.domain.ports import SourceAdapter
+from rom_archive_grabber.domain.models import GameFile, SourceConfig
+from rom_archive_grabber.domain.ports import MatchingFileResolver, SourceAdapter
 
 
 class SourceRegistry:
@@ -8,6 +8,7 @@ class SourceRegistry:
     def __init__(self) -> None:
         self._adapters: dict[str, SourceAdapter] = {}
         self._builtin: list[SourceConfig] = []
+        self._resolvers: list[MatchingFileResolver] = []
 
     def register(self, adapter: SourceAdapter) -> None:
         if adapter.kind in self._adapters:
@@ -28,6 +29,16 @@ class SourceRegistry:
 
     def builtin_sources(self) -> list[SourceConfig]:
         return list(self._builtin)
+
+    def register_resolver(self, resolver: MatchingFileResolver) -> None:
+        """Add a plugin resolver for links that need a fresh URL at download time."""
+        self._resolvers.append(resolver)
+
+    async def resolve(self, file: GameFile) -> tuple[str, str | None]:
+        for resolver in self._resolvers:
+            if resolver.handles(file):
+                return await resolver.resolve(file)
+        return file.url, None
 
     @staticmethod
     async def _detects(adapter: SourceAdapter, location: str) -> bool:

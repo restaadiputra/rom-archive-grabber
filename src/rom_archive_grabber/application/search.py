@@ -2,6 +2,7 @@ import unicodedata
 from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import StrEnum
+from functools import lru_cache
 
 from rom_archive_grabber.domain.models import GameFile
 
@@ -12,9 +13,14 @@ def normalize(text: str) -> str:
     return "".join(ch for ch in decomposed if not unicodedata.combining(ch))
 
 
+@lru_cache(maxsize=100_000)
+def _normalized_title(title: str) -> str:
+    return normalize(title)
+
+
 def matches(query: str, title: str) -> bool:
-    normalized_title = normalize(title)
-    return all(word in normalized_title for word in normalize(query).split())
+    words = normalize(query).split()
+    return all(word in _normalized_title(title) for word in words)
 
 
 class SortColumn(StrEnum):
@@ -33,15 +39,16 @@ class FileFilter:
 
 
 def filter_files(files: Sequence[GameFile], flt: FileFilter) -> list[GameFile]:
-    return [f for f in files if _accepts(f, flt)]
+    words = normalize(flt.query).split()
+    return [f for f in files if _accepts(f, flt, words)]
 
 
-def _accepts(file: GameFile, flt: FileFilter) -> bool:
+def _accepts(file: GameFile, flt: FileFilter, words: list[str]) -> bool:
     if flt.source_ids is not None and file.source_id not in flt.source_ids:
         return False
     if flt.platform is not None and file.platform != flt.platform:
         return False
-    return matches(flt.query, file.title)
+    return not words or all(word in _normalized_title(file.title) for word in words)
 
 
 def sort_files(

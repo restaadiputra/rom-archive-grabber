@@ -4,9 +4,9 @@ from pathlib import Path
 from textual.pilot import Pilot
 from textual.widgets import Button, Input, TabbedContent
 
-from rom_archive_grabber.domain.models import DownloadJob, JobStatus
+from rom_archive_grabber.domain.models import CachedCatalog, DownloadJob, JobStatus
 from rom_archive_grabber.ui.app import RomArchiveApp
-from rom_archive_grabber.ui.browse.results_table import ResultsTable
+from rom_archive_grabber.ui.browse.results_table import ResultsTable, RowView, SortView
 from rom_archive_grabber.ui.browse.source_row import SourceRow
 from rom_archive_grabber.ui.message_dialog import MessageDialog
 from tests.ui.conftest import BUILTIN, FILES, MY_LIST, FakePluginWarning, World
@@ -43,6 +43,29 @@ async def test_shows_files_from_all_enabled_sources(world: World) -> None:
     async with RomArchiveApp(world.services()).run_test(size=SIZE) as pilot:
         await loaded(pilot)
         assert titles(pilot) == ALL_TITLES
+
+
+async def test_duplicate_cached_urls_do_not_crash_results_table(world: World) -> None:
+    services = world.services()
+    file = FILES[BUILTIN.id][0]
+    world.catalog_store.save(
+        BUILTIN.id, CachedCatalog([file, file], datetime(2026, 1, 1, tzinfo=UTC))
+    )
+    async with RomArchiveApp(services).run_test(size=SIZE) as pilot:
+        await loaded(pilot)
+        assert titles(pilot).count(file.title) == 1
+
+
+async def test_results_table_rejects_duplicate_input_rows(world: World) -> None:
+    async with RomArchiveApp(world.services()).run_test(size=SIZE) as pilot:
+        await loaded(pilot)
+        cells = ("", "First title", "Game Boy", "1 MB", "Source", "")
+        duplicate = ("", "Repeated title", "Game Boy", "1 MB", "Source", "")
+        table(pilot).show(
+            [RowView("same-key", cells), RowView("same-key", duplicate)], SortView(None, False)
+        )
+        assert table(pilot).row_count == 1
+        assert table(pilot).get_cell("same-key", "title") == "First title"
 
 
 async def test_typing_in_search_filters_rows(world: World) -> None:

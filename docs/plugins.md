@@ -31,6 +31,13 @@ Inside `register` you call `registry.register(adapter)` and, optionally,
 `registry.add_builtin_source(SourceConfig(...))` to make a ready-made source appear
 in the Sources panel.
 
+If a listing URL must be resolved to a fresh download URL, a plugin can also
+call `registry.register_resolver(resolver)`. The resolver implements
+`handles(file: GameFile) -> bool` and
+`async resolve(file: GameFile) -> tuple[str, str | None]`. The first resolver
+whose `handles` method returns true supplies the current URL and an optional
+file name. Files without a matching resolver download from their listed URL.
+
 An adapter has:
 
 - `kind: str`: a unique name for the source type. Registering a kind that already
@@ -43,6 +50,10 @@ An adapter has:
 
 The `http` client is shared with the rest of the app. It sends the app's User-Agent
 and retries failed requests, so use it instead of creating your own.
+
+Keep personal source plugins in `local-plugins/` or the user config plugin folder.
+`local-plugins/` is ignored by Git, but files that were already staged or committed
+must be removed from the Git index separately before publishing.
 
 ## A complete minimal plugin
 

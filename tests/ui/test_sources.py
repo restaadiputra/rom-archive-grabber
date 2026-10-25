@@ -13,7 +13,7 @@ SIZE = (160, 40)
 NEW_LINK = "https://example.org/picks.txt"
 UNDETECTED = (
     "Couldn't recognise this link. Supported: Archive.org items or collections, "
-    "folder pages, and plain link lists."
+    "folder pages, plain link lists, and installed plugins."
 )
 
 

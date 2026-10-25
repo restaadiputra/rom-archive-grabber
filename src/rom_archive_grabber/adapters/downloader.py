@@ -7,6 +7,7 @@ from rom_archive_grabber.domain.models import DownloadJob
 from rom_archive_grabber.domain.names import safe_file_name
 from rom_archive_grabber.domain.ports import (
     DownloadError,
+    FileResolver,
     HttpClient,
     HttpError,
     HttpStream,
@@ -60,16 +61,21 @@ def _total_bytes(headers: dict[str, str], start: int, partial: bool) -> int | No
 
 
 class FileDownloader:
-    def __init__(self, http: HttpClient) -> None:
+    def __init__(self, http: HttpClient, resolver: FileResolver | None = None) -> None:
         self._http = http
+        self._resolver = resolver
 
     async def download(self, job: DownloadJob, folder: Path, on_progress: ProgressFn) -> None:
-        dest = self._resolve_dest(job, folder)
+        if self._resolver is None:
+            url, name = job.file.url, None
+        else:
+            url, name = await self._resolver.resolve(job.file)
+        dest = self._resolve_dest(job, folder, name)
         part = Path(str(dest) + _PART_SUFFIX)
         start = part.stat().st_size if part.exists() else 0
         # Leaving the context (error or cancellation) closes the connection;
         # the .part file stays so the download can resume later.
-        async with self._http.stream(job.file.url, start) as stream:
+        async with self._http.stream(url, start) as stream:
             self._check_range_rejected(stream, part, start)
             partial = self._check_status(job, stream, start)
             if not partial:
@@ -87,11 +93,11 @@ class FileDownloader:
         if job.dest_path is not None:
             Path(job.dest_path).unlink(missing_ok=True)
 
-    def _resolve_dest(self, job: DownloadJob, folder: Path) -> Path:
+    def _resolve_dest(self, job: DownloadJob, folder: Path, name: str | None = None) -> Path:
         if job.dest_path is None:
             folder.mkdir(parents=True, exist_ok=True)
-            name = safe_file_name(job.file.file_name)
-            reserved = unique_path(folder, name)
+            safe_name = safe_file_name(name or job.file.file_name)
+            reserved = unique_path(folder, safe_name)
             # Claim the name on disk now so a parallel job with the same file
             # name cannot resolve to the same destination.
             reserved.with_name(reserved.name + _PART_SUFFIX).touch()
