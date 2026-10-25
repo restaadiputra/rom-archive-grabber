@@ -140,7 +140,10 @@ and `composition.py`, which wires them together.
 
 ## About this project
 
-This project was vibe coded.
+This project was vibe coded, and took its inspiration from
+[sostenesapollo/rom-cli](https://github.com/sostenesapollo/rom-cli). The optional
+local provider integrations follow the source types used by
+[danisiber/rom-cli](https://github.com/danisiber/rom-cli).
 
 ## Your responsibility
 
